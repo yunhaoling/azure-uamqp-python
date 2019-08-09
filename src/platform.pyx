@@ -29,7 +29,7 @@ cpdef platform_deinit():
 
 cpdef get_info():
     cdef c_strings.STRING_HANDLE str_info
-    str_info = c_platform.platform_get_platform_info()
+    str_info = c_platform.platform_get_platform_info(c_platform.PLATFORM_INFO_OPTION.PLATFORM_INFO_OPTION_DEFAULT)
     info = AMQPString()
     info.wrap(str_info)
     return info

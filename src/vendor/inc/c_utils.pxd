@@ -59,7 +59,7 @@ cdef extern from "azure_c_shared_utility/urlencode.h":
     c_strings.STRING_HANDLE URL_Encode(c_strings.STRING_HANDLE input)
 
 
-cdef extern from "azure_c_shared_utility/base64.h":
+cdef extern from "azure_c_shared_utility/azure_base64.h":
 
     c_strings.STRING_HANDLE Base64_Encoder(BUFFER_HANDLE input)
     c_strings.STRING_HANDLE Base64_Encode_Bytes(const unsigned char* source, size_t size)

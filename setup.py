@@ -50,10 +50,10 @@ sys.path.insert(0, pxd_inc_dir)
 
 include_dirs = [
     pxd_inc_dir,
-    "./src/vendor/azure-uamqp-c/deps/azure-macro-utils-c/inc"
-    "./src/vendor/azure-uamqp-c/deps/umock-c/inc"
-    "./src/vendor/azure-uamqp-c/deps/azure-c-testrunnerswitcher/inc"
-    "./src/vendor/azure-uamqp-c/deps/azure-ctest/inc"
+    "./src/vendor/azure-uamqp-c/deps/azure-macro-utils-c/inc",
+    "./src/vendor/azure-uamqp-c/deps/azure-c-testrunnerswitcher/inc",
+    "./src/vendor/azure-uamqp-c/deps/azure-ctest/inc",
+    "./src/vendor/azure-uamqp-c/deps/umock-c/inc",
     # azure-c-shared-utility inc
     "./src/vendor/azure-uamqp-c/deps/azure-c-shared-utility/pal/inc",
     "./src/vendor/azure-uamqp-c/deps/azure-c-shared-utility/inc",
@@ -93,9 +93,9 @@ def get_generator():
     if is_msvc_9_for_python_compiler():
         return "NMake Makefiles"
     if is_win:
-        generator = "Visual Studio 9 2008" if is_27 else "Visual Studio 15 2017"
+        generator = "Visual Studio 9 2008" if is_27 else "Visual Studio 16 2019"
         if is_x64:
-            return generator + " Win64"
+            return generator # + " Win64"
         else:
             return generator
     return "Unix Makefiles"
@@ -197,7 +197,15 @@ class build_ext(build_ext_orig):
                     cmake_build_dir + "/Debug/",
                     cmake_build_dir + "/Release/",
                     cmake_build_dir + "/deps/azure-c-shared-utility/Debug/",
-                    cmake_build_dir + "/deps/azure-c-shared-utility/Release/"
+                    cmake_build_dir + "/deps/azure-c-shared-utility/Release/",
+                    cmake_build_dir + "/deps/azure-macro-utils-c/Debug/",
+                    cmake_build_dir + "/deps/azure-macro-utils-c/Release/",
+                    cmake_build_dir + "/deps/azure-c-testrunnerswitcher/Debug/",
+                    cmake_build_dir + "/deps/azure-c-testrunnerswitcher/Release/",
+                    cmake_build_dir + "/deps/azure-ctest/Debug/",
+                    cmake_build_dir + "/deps/azure-ctest/Release/",
+                    cmake_build_dir + "/deps/umock-c/Debug/",
+                    cmake_build_dir + "/deps/umock-c/Release/",
                 ]
 
         if is_win and is_27:
@@ -245,7 +253,7 @@ class build_ext(build_ext_orig):
         logger.info("calling %s", joined_cmd)
         subprocess.check_call(joined_cmd, shell=True, universal_newlines=True, env=build_env)
 
-        compile_command  = ["cmake", "--build", ".", "--config", "Release"]
+        compile_command = ["cmake", "--build", ".", "--config", "Release"]
         joined_cmd = " ".join(compile_command)
         logger.info("calling %s", joined_cmd)
         subprocess.check_call(joined_cmd, shell=True, universal_newlines=True, env=build_env)
