@@ -15,11 +15,21 @@ int main()
     CTEST_RUN_TEST_SUITE(TestSuiteInitializeCleanupTests, failedTests);
     CTEST_RUN_TEST_SUITE(AssertSuccessTests, failedTests);
     {
+        // tests with regular assert failures, no special messages
         size_t temp_failed_tests = 0;
         CTEST_RUN_TEST_SUITE(AssertFailureTests, temp_failed_tests);
         if (temp_failed_tests != 71)
         {
             failedTests ++;
+        }
+    }
+    {
+        // tests with assert failures with printf like messages
+        size_t temp_failed_tests = 0;
+        CTEST_RUN_TEST_SUITE(AssertFailureTestsWithPrintfLikeMsgs, temp_failed_tests);
+        if (temp_failed_tests != 36)
+        {
+            failedTests++;
         }
     }
     CTEST_RUN_TEST_SUITE(TestFunctionInitializeTests, failedTests);
@@ -50,6 +60,35 @@ int main()
             failedTests ++;
         }
     }
+
+    {
+        size_t temp_failed_tests = 0;
+        CTEST_RUN_TEST_SUITE(TestSuiteCleanupTests, temp_failed_tests);
+        if (temp_failed_tests == 0) /*the tests in TestSuiteCleanupTests HAVE to fail*/
+        {
+            failedTests++;
+        }
+    }
+
+    {
+        size_t temp_failed_tests = 0;
+        CTEST_RUN_TEST_SUITE(TestSuiteCleanupTests2, temp_failed_tests);
+        if (temp_failed_tests == 0) /*the tests in TestSuiteCleanupTests HAVE to fail*/
+        {
+            failedTests++;
+        }
+    }
+
+#if defined _MSC_VER
+    {
+        size_t temp_failed_tests = 0;
+        CTEST_RUN_TEST_SUITE(WindowsTypesTests, temp_failed_tests);
+        if (temp_failed_tests != 5) // 5 expected failing tests
+        {
+            failedTests++;
+        }
+    }
+#endif
 
     return failedTests;
 }

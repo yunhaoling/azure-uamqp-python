@@ -18,9 +18,19 @@ set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 set(CMAKE_POSITION_INDEPENDENT_CODE TRUE)
 
 option(run_unittests "set run_unittests to ON to run unittests (default is OFF)" OFF)
+if ((MSVC) OR (UNIX) OR (LINUX))
+# Enable coloring by default for Linux, *nix and Windows
+option(use_coloring "use test coloring (default is ON)" ON)
+else()
+option(use_coloring "use test coloring (default is OFF)" OFF)
+endif()
 
 include (CTest)
 include (CheckIncludeFiles)
+
+if(${use_coloring})
+add_definitions(-DUSE_COLORING)
+endif()
 
 if (CMAKE_VERSION VERSION_LESS "3.1")
   if (CMAKE_C_COMPILER_ID STREQUAL "GNU")
@@ -50,13 +60,35 @@ elseif(LINUX)
     endif()
 endif()
 
+if (NOT TARGET azure_macro_utils_c) 
+    if (EXISTS ${CMAKE_CURRENT_LIST_DIR}/deps/azure-macro-utils-c/CMakeLists.txt)
+        add_subdirectory(deps/azure-macro-utils-c)
+    else()
+        message(FATAL_ERROR "Could not find azure_macro_utils_c")
+    endif()
+endif()
+
+include_directories(${MACRO_UTILS_INC_FOLDER})
+
 set(ctest_c_files
-./src/ctest.c
+    ./src/ctest.c
 )
 
 set(ctest_h_files
-./inc/ctest.h
-./inc/ctest_macros.h)
+    ./inc/ctest.h
+)
+
+if (MSVC)
+set(ctest_c_files
+    ${ctest_c_files}
+    ./src/ctest_windows.c
+)
+
+set(ctest_h_files
+    ${ctest_h_files}
+    ./inc/ctest_windows.h
+)
+endif()
 
 #these are the include folders
 #the following "set" statetement exports across the project a global variable called CTEST_INC_FOLDER that expands to whatever needs to included when using ctest library

@@ -50,6 +50,10 @@ sys.path.insert(0, pxd_inc_dir)
 
 include_dirs = [
     pxd_inc_dir,
+    "./src/vendor/azure-uamqp-c/deps/azure-macro-utils-c/inc"
+    "./src/vendor/azure-uamqp-c/deps/umock-c/inc"
+    "./src/vendor/azure-uamqp-c/deps/azure-c-testrunnerswitcher/inc"
+    "./src/vendor/azure-uamqp-c/deps/azure-ctest/inc"
     # azure-c-shared-utility inc
     "./src/vendor/azure-uamqp-c/deps/azure-c-shared-utility/pal/inc",
     "./src/vendor/azure-uamqp-c/deps/azure-c-shared-utility/inc",
@@ -190,7 +194,6 @@ class build_ext(build_ext_orig):
             else:
                 ext.library_dirs += [
                     cmake_build_dir,
-                    cmake_build_dir + "/deps/azure-c-shared-utility/",
                     cmake_build_dir + "/Debug/",
                     cmake_build_dir + "/Release/",
                     cmake_build_dir + "/deps/azure-c-shared-utility/Debug/",
