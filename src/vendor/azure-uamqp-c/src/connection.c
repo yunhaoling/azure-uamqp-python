@@ -59,6 +59,9 @@ typedef struct CONNECTION_INSTANCE_TAG
     char* container_id;
     TICK_COUNTER_HANDLE tick_counter;
     uint32_t remote_max_frame_size;
+	uint32_t handle_max;
+	uint32_t handle_count;
+	handle* handle_array;
 
     ON_SEND_COMPLETE on_send_complete;
     void* on_send_complete_callback_context;
@@ -1252,6 +1255,10 @@ CONNECTION_HANDLE connection_create2(XIO_HANDLE xio, const char* hostname, const
                                 connection->remote_max_frame_size = 512;
                                 connection->is_trace_on = 0;
 
+								connection->handle_max = 4294967295u;
+								connection->handle_array = NULL;
+								connection->handle_count = 0;
+
                                 /* Mark that settings have not yet been set by the user */
                                 connection->idle_timeout_specified = 0;
 
@@ -2036,89 +2043,196 @@ int connection_encode_frame(ENDPOINT_HANDLE endpoint, AMQP_VALUE performative, P
         LogError("Bad arguments: endpoint = %p, performative = %p",
             endpoint, performative);
         result = __FAILURE__;
-    }
-    else
-    {
-        CONNECTION_HANDLE connection = (CONNECTION_HANDLE)endpoint->connection;
-        AMQP_FRAME_CODEC_HANDLE amqp_frame_codec = connection->amqp_frame_codec;
+	}
+	else
+	{
+	CONNECTION_HANDLE connection = (CONNECTION_HANDLE)endpoint->connection;
+	AMQP_FRAME_CODEC_HANDLE amqp_frame_codec = connection->amqp_frame_codec;
 
-        /* Codes_S_R_S_CONNECTION_01_254: [If connection_encode_frame is called before the connection is in the OPENED state, connection_encode_frame shall fail and return a non-zero value.] */
-        if (connection->connection_state != CONNECTION_STATE_OPENED)
-        {
-            LogError("Connection not open");
-            result = __FAILURE__;
-        }
-        else
-        {
-            /* Codes_S_R_S_CONNECTION_01_255: [The payload size shall be computed based on all the payload chunks passed as argument in payloads.] */
-            /* Codes_S_R_S_CONNECTION_01_250: [connection_encode_frame shall initiate the frame send by calling amqp_frame_codec_begin_encode_frame.] */
-            /* Codes_S_R_S_CONNECTION_01_251: [The channel number passed to amqp_frame_codec_begin_encode_frame shall be the outgoing channel number associated with the endpoint by connection_create_endpoint.] */
-            /* Codes_S_R_S_CONNECTION_01_252: [The performative passed to amqp_frame_codec_begin_encode_frame shall be the performative argument of connection_encode_frame.] */
-            connection->on_send_complete = on_send_complete;
-            connection->on_send_complete_callback_context = callback_context;
-            if (amqp_frame_codec_encode_frame(amqp_frame_codec, endpoint->outgoing_channel, performative, payloads, payload_count, on_bytes_encoded, connection) != 0)
-            {
-                /* Codes_S_R_S_CONNECTION_01_253: [If amqp_frame_codec_begin_encode_frame or amqp_frame_codec_encode_payload_bytes fails, then connection_encode_frame shall fail and return a non-zero value.] */
-                LogError("Encoding AMQP frame failed");
-                result = __FAILURE__;
-            }
-            else
-            {
-                if (connection->is_trace_on == 1)
-                {
-                    log_outgoing_frame(performative);
-                }
+	/* Codes_S_R_S_CONNECTION_01_254: [If connection_encode_frame is called before the connection is in the OPENED state, connection_encode_frame shall fail and return a non-zero value.] */
+	if (connection->connection_state != CONNECTION_STATE_OPENED)
+	{
+		LogError("Connection not open");
+		result = __FAILURE__;
+	}
+	else
+	{
+		/* Codes_S_R_S_CONNECTION_01_255: [The payload size shall be computed based on all the payload chunks passed as argument in payloads.] */
+		/* Codes_S_R_S_CONNECTION_01_250: [connection_encode_frame shall initiate the frame send by calling amqp_frame_codec_begin_encode_frame.] */
+		/* Codes_S_R_S_CONNECTION_01_251: [The channel number passed to amqp_frame_codec_begin_encode_frame shall be the outgoing channel number associated with the endpoint by connection_create_endpoint.] */
+		/* Codes_S_R_S_CONNECTION_01_252: [The performative passed to amqp_frame_codec_begin_encode_frame shall be the performative argument of connection_encode_frame.] */
+		connection->on_send_complete = on_send_complete;
+		connection->on_send_complete_callback_context = callback_context;
+		if (amqp_frame_codec_encode_frame(amqp_frame_codec, endpoint->outgoing_channel, performative, payloads, payload_count, on_bytes_encoded, connection) != 0)
+		{
+			/* Codes_S_R_S_CONNECTION_01_253: [If amqp_frame_codec_begin_encode_frame or amqp_frame_codec_encode_payload_bytes fails, then connection_encode_frame shall fail and return a non-zero value.] */
+			LogError("Encoding AMQP frame failed");
+			result = __FAILURE__;
+		}
+		else
+		{
+			if (connection->is_trace_on == 1)
+			{
+				log_outgoing_frame(performative);
+			}
 
-                if (tickcounter_get_current_ms(connection->tick_counter, &connection->last_frame_sent_time) != 0)
-                {
-                    LogError("Getting tick counter value failed");
-                    result = __FAILURE__;
-                }
-                else
-                {
-                    /* Codes_S_R_S_CONNECTION_01_248: [On success it shall return 0.] */
-                    result = 0;
-                }
-            }
-        }
-    }
+			if (tickcounter_get_current_ms(connection->tick_counter, &connection->last_frame_sent_time) != 0)
+			{
+				LogError("Getting tick counter value failed");
+				result = __FAILURE__;
+			}
+			else
+			{
+				/* Codes_S_R_S_CONNECTION_01_248: [On success it shall return 0.] */
+				result = 0;
+			}
+		}
+	}
+	}
 
-    return result;
+	return result;
 }
 
 void connection_set_trace(CONNECTION_HANDLE connection, bool trace_on)
 {
-    /* Codes_S_R_S_CONNECTION_07_002: [If connection is NULL then connection_set_trace shall do nothing.] */
-    if (connection == NULL)
-    {
-        LogError("NULL connection");
-    }
-    else
-    {
-        /* Codes_S_R_S_CONNECTION_07_001: [connection_set_trace shall set the ability to turn on and off trace logging.] */
-        connection->is_trace_on = trace_on ? 1 : 0;
-    }
+	/* Codes_S_R_S_CONNECTION_07_002: [If connection is NULL then connection_set_trace shall do nothing.] */
+	if (connection == NULL)
+	{
+		LogError("NULL connection");
+	}
+	else
+	{
+		/* Codes_S_R_S_CONNECTION_07_001: [connection_set_trace shall set the ability to turn on and off trace logging.] */
+		connection->is_trace_on = trace_on ? 1 : 0;
+	}
 }
 
 int connection_set_remote_idle_timeout_empty_frame_send_ratio(CONNECTION_HANDLE connection, double idle_timeout_empty_frame_send_ratio)
 {
-    int result;
+	int result;
 
-    if ((connection == NULL) ||
-        (idle_timeout_empty_frame_send_ratio <= 0.0) ||
-        (idle_timeout_empty_frame_send_ratio > 1.0))
-    {
-        LogError("Bad arguments: connection = %p, idle_timeout_empty_frame_send_ratio = %f",
-            connection, idle_timeout_empty_frame_send_ratio);
-        result = __FAILURE__;
-    }
-    else
-    {
-        connection->idle_timeout_empty_frame_send_ratio = idle_timeout_empty_frame_send_ratio;
-        result = 0;
-    }
+	if ((connection == NULL) ||
+		(idle_timeout_empty_frame_send_ratio <= 0.0) ||
+		(idle_timeout_empty_frame_send_ratio > 1.0))
+	{
+		LogError("Bad arguments: connection = %p, idle_timeout_empty_frame_send_ratio = %f",
+			connection, idle_timeout_empty_frame_send_ratio);
+		result = __FAILURE__;
+	}
+	else
+	{
+		connection->idle_timeout_empty_frame_send_ratio = idle_timeout_empty_frame_send_ratio;
+		result = 0;
+	}
 
-    return result;
+	return result;
+}
+
+int connection_allocate_link_handle(CONNECTION_HANDLE connection, handle* link_handle)
+{
+	int result;
+
+	if (connection == NULL || link_handle == NULL) {
+		LogError("NULL connection or link handle");
+		result = __FAILURE__;
+	}
+	else
+	{
+		CONNECTION_INSTANCE* connection_instance = (CONNECTION_INSTANCE*)connection;
+
+		handle selected_handle = 0;
+		uint32_t i;
+		for (i = 0; i < connection_instance->handle_count; i++)
+		{
+			if (connection_instance->handle_array[i] > selected_handle)
+			{
+				break;
+			}
+			selected_handle++;
+		}
+
+		if (selected_handle < 0) /* integer overflow */
+		{
+			result = __FAILURE__;
+		}
+		else
+		{
+			handle* new_handle_array;
+			new_handle_array = (handle*)realloc(connection_instance->handle_array, sizeof(handle) * (connection_instance->handle_count + 1));
+			if (new_handle_array == NULL)
+			{
+				result = __FAILURE__;
+			}
+			else
+			{
+				if (connection_instance->handle_count - selected_handle > 0)
+				{
+					(void)memmove(&connection_instance->handle_array[selected_handle + 1], &connection_instance->handle_array[selected_handle], (connection_instance->handle_count - selected_handle) * sizeof(handle));
+				}
+
+				*link_handle = selected_handle;
+
+				connection_instance->handle_array[selected_handle] = selected_handle;
+				connection_instance->handle_count++;
+				
+				result = 0;
+			}
+		}
+	}
+
+	return result;
+}
+
+int connection_release_link_handle(CONNECTION_HANDLE connection, handle link_handle)
+{
+	int result;
+
+	if (connection == NULL || link_handle < 0)
+	{
+		LogError("NULL connection or negative link handle");
+		result = __FAILURE__;
+	}
+	else
+	{
+		CONNECTION_INSTANCE* connection_instance = (CONNECTION_INSTANCE*)connection;
+		uint32_t i;
+
+		for (i = 0; i < connection_instance->handle_count; i++)
+		{
+			if (connection_instance->handle_array[i] == link_handle)
+			{
+				break;
+			}
+		}
+
+		if (i < connection_instance->handle_count)
+		{
+			handle* new_handle_array;
+			
+			if (i < (connection_instance->handle_count - 1))
+			{
+				(void)memmove(&connection_instance->handle_array[i], &connection_instance->handle_array[i + 1], (connection_instance->handle_count - (uint32_t)i - 1) * sizeof(handle));
+			}
+
+			connection_instance->handle_count--;
+			
+			if (connection_instance->handle_count == 0)
+			{
+				free(connection_instance->handle_array);
+				connection_instance->handle_array = NULL;
+			}
+			else
+			{
+				new_handle_array = (handle*)realloc(connection_instance->handle_array, sizeof(handle) * connection_instance->handle_count);
+				if (new_handle_array != NULL)
+				{
+					connection_instance->handle_array = new_handle_array;
+				}
+			}
+		}
+	}
+
+	return result;
 }
 
 ON_CONNECTION_CLOSED_EVENT_SUBSCRIPTION_HANDLE connection_subscribe_on_connection_close_received(CONNECTION_HANDLE connection, ON_CONNECTION_CLOSE_RECEIVED on_connection_close_received, void* context)

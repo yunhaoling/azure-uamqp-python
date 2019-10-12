@@ -102,6 +102,21 @@ static void remove_link_endpoint(LINK_ENDPOINT_HANDLE link_endpoint)
     }
 }
 
+static void remove_link_endpoint_2(LINK_ENDPOINT_HANDLE link_endpoint)
+{
+	if (link_endpoint != NULL)
+	{
+		LINK_ENDPOINT_INSTANCE* endpoint_instance = (LINK_ENDPOINT_INSTANCE*)link_endpoint;
+		SESSION_INSTANCE* session_instance = endpoint_instance->session;
+		int result = connection_release_link_handle(session_instance->connection, endpoint_instance->output_handle);
+		if (result != 0)
+		{
+			void;
+			// Log Error
+		}
+	}
+}
+
 static void free_link_endpoint(LINK_ENDPOINT_HANDLE link_endpoint)
 {
     if (link_endpoint->name != NULL)
@@ -1109,26 +1124,29 @@ LINK_ENDPOINT_HANDLE session_create_link_endpoint(SESSION_HANDLE session, const 
         /* Codes_S_R_S_SESSION_01_045: [If allocating memory for the link endpoint fails, session_create_link_endpoint shall fail and return NULL.] */
         if (result != NULL)
         {
+			handle selected_handle;
+			int allocate_result = connection_allocate_link_handle(session_instance->connection, &selected_handle);
             /* Codes_S_R_S_SESSION_01_046: [An unused handle shall be assigned to the link endpoint.] */
-            handle selected_handle = 0;
-            size_t i;
+            //handle selected_handle = 0;
+            //size_t i;
             size_t name_length;
 
-            for (i = 0; i < session_instance->link_endpoint_count; i++)
-            {
-                if (session_instance->link_endpoints[i]->output_handle > selected_handle)
-                {
-                    break;
-                }
+            //for (i = 0; i < session_instance->link_endpoint_count; i++)
+            //{
+            //    if (session_instance->link_endpoints[i]->output_handle > selected_handle)
+            //    {
+            //        break;
+            //    }
 
-                selected_handle++;
-            }
+            //    selected_handle++;
+            //}
 
             result->on_session_state_changed = NULL;
             result->on_session_flow_on = NULL;
             result->frame_received_callback = NULL;
             result->callback_context = NULL;
-            result->output_handle = selected_handle;
+			//result->output_handle = selected_handle;
+			result->output_handle = selected_handle;
             result->input_handle = 0xFFFFFFFF;
             result->link_endpoint_state = LINK_ENDPOINT_STATE_NOT_ATTACHED;
             name_length = strlen(name);
@@ -1184,7 +1202,8 @@ void session_destroy_link_endpoint(LINK_ENDPOINT_HANDLE link_endpoint)
         }
         else
         {
-            remove_link_endpoint(link_endpoint);
+            //remove_link_endpoint(link_endpoint);
+			remove_link_endpoint_2(link_endpoint);
             free_link_endpoint(link_endpoint);
         }
     }
