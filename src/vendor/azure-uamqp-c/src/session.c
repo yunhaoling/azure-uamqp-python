@@ -111,7 +111,6 @@ static void remove_link_endpoint_2(LINK_ENDPOINT_HANDLE link_endpoint)
 		int result = connection_release_link_handle(session_instance->connection, endpoint_instance->output_handle);
 		if (result != 0)
 		{
-			void;
 			// Log Error
 		}
 	}
@@ -892,7 +891,6 @@ int session_begin(SESSION_HANDLE session)
                     }
                     else
                     {
-                        send_begin(session_instance);
                         session_set_state(session_instance, SESSION_STATE_BEGIN_SENT);
                         session_instance->is_underlying_connection_open = UNDERLYING_CONNECTION_OPEN;
                         result = 0;
@@ -1127,28 +1125,40 @@ LINK_ENDPOINT_HANDLE session_create_link_endpoint(SESSION_HANDLE session, const 
         /* Codes_S_R_S_SESSION_01_045: [If allocating memory for the link endpoint fails, session_create_link_endpoint shall fail and return NULL.] */
         if (result != NULL)
         {
-			handle selected_handle;
-			int allocate_result = connection_allocate_link_handle(session_instance->connection, &selected_handle);
+
+			/*share connection implementation*/
+			//handle selected_handle;
+			//int allocate_result = connection_allocate_link_handle(session_instance->connection, &selected_handle);
+			//if (allocate_result == 0)
+			//{
+
+			//}
+			//else
+			//{
+
+			//}
+			/*share connection*/
             /* Codes_S_R_S_SESSION_01_046: [An unused handle shall be assigned to the link endpoint.] */
-            //handle selected_handle = 0;
-            //size_t i;
-            size_t name_length;
+			size_t name_length;
+			/*old implementation*/
+            handle selected_handle = 0;
+            size_t i;
 
-            //for (i = 0; i < session_instance->link_endpoint_count; i++)
-            //{
-            //    if (session_instance->link_endpoints[i]->output_handle > selected_handle)
-            //    {
-            //        break;
-            //    }
 
-            //    selected_handle++;
-            //}
+            for (i = 0; i < session_instance->link_endpoint_count; i++)
+            {
+                if (session_instance->link_endpoints[i]->output_handle > selected_handle)
+                {
+                    break;
+                }
 
+                selected_handle++;
+            }
+			/*old implementation*/
             result->on_session_state_changed = NULL;
             result->on_session_flow_on = NULL;
             result->frame_received_callback = NULL;
             result->callback_context = NULL;
-			//result->output_handle = selected_handle;
 			result->output_handle = selected_handle;
             result->input_handle = 0xFFFFFFFF;
             result->link_endpoint_state = LINK_ENDPOINT_STATE_NOT_ATTACHED;
@@ -1178,12 +1188,17 @@ LINK_ENDPOINT_HANDLE session_create_link_endpoint(SESSION_HANDLE session, const 
                 {
                     session_instance->link_endpoints = new_link_endpoints;
 
+					/*old implementation*/
                     if (session_instance->link_endpoint_count - selected_handle > 0)
                     {
                         (void)memmove(&session_instance->link_endpoints[selected_handle + 1], &session_instance->link_endpoints[selected_handle], (session_instance->link_endpoint_count - selected_handle) * sizeof(LINK_ENDPOINT_INSTANCE*));
                     }
 
                     session_instance->link_endpoints[selected_handle] = result;
+					/*old implementation*/
+
+					session_instance->link_endpoints[session_instance->link_endpoint_count] = result;
+
                     session_instance->link_endpoint_count++;
                 }
             }
@@ -1205,8 +1220,8 @@ void session_destroy_link_endpoint(LINK_ENDPOINT_HANDLE link_endpoint)
         }
         else
         {
-            //remove_link_endpoint(link_endpoint);
-			remove_link_endpoint_2(link_endpoint);
+            remove_link_endpoint(link_endpoint);
+			//remove_link_endpoint_2(link_endpoint);
             free_link_endpoint(link_endpoint);
         }
     }
