@@ -2165,13 +2165,13 @@ int connection_allocate_link_handle(CONNECTION_HANDLE connection, handle* link_h
 			}
 			else
 			{
+				connection_instance->handle_array = new_handle_array;
 				if (connection_instance->handle_count - selected_handle > 0)
 				{
 					(void)memmove(&connection_instance->handle_array[selected_handle + 1], &connection_instance->handle_array[selected_handle], (connection_instance->handle_count - selected_handle) * sizeof(handle));
 				}
 
 				*link_handle = selected_handle;
-
 				connection_instance->handle_array[selected_handle] = selected_handle;
 				connection_instance->handle_count++;
 				
@@ -2230,6 +2230,8 @@ int connection_release_link_handle(CONNECTION_HANDLE connection, handle link_han
 				}
 			}
 		}
+
+		result = 0;
 	}
 
 	return result;

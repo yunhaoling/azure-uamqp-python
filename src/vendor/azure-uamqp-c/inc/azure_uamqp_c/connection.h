@@ -13,6 +13,7 @@
 #include "azure_uamqp_c/amqp_frame_codec.h"
 #include "azure_uamqp_c/amqp_definitions_fields.h"
 #include "azure_uamqp_c/amqp_definitions_milliseconds.h"
+#include "azure_uamqp_c/amqp_definitions_handle.h"
 #include "azure_uamqp_c/amqp_definitions_error.h"
 #include "azure_uamqp_c/amqpvalue.h"
 
