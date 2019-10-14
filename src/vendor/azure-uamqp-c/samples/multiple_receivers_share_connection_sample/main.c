@@ -27,10 +27,10 @@
 /* The SAS token is generated based on the policy name/key */
 /* Replace the below settings with your own.*/
 
-#define EH_HOST "Insert EH host here"
-#define EH_KEY_NAME "Insert key name here"
-#define EH_KEY "Insert key here"
-#define EH_NAME "Insert EH name here"
+#define EH_HOST ""
+#define EH_KEY_NAME ""
+#define EH_KEY ""
+#define EH_NAME ""
 
 static const size_t msg_count = 1;
 static unsigned int sent_messages = 0;
@@ -270,7 +270,7 @@ int main(int argc, char** argv)
 		//printf("cbs session state: %s\n", get_session_state(session));
 		
 		int max_link_credit = 300;
-		int partition_cnt = 3;
+		int partition_cnt = 2;
 		
 		for(int i = 0; i < partition_cnt; i++) {
 			char partition_str[3];
@@ -330,10 +330,9 @@ int main(int argc, char** argv)
 		{
 			connection_dowork(connection);
 			for (int i = 0; i < partition_cnt; i++) {
-				//printf("| partition: %d, cnt: %d |", i, rec[i]);
-				//printf("| session:%d , state: %s |", i, get_session_state(session_handlers[i]));
+				printf("| partition: %d, cnt: %d |", i, rec[i]);
 			}
-			//printf("\n");
+			printf("\n");
 		}
 
         result = 0;
