@@ -604,7 +604,7 @@ class SendClient(AMQPClient):
 
     def _get_msg_timeout(self, message):
         current_time = self._counter.get_current_ms()
-        elapsed_time = (current_time - message.idle_time)/1000
+        elapsed_time = (current_time - message.idle_time)
         if self._msg_timeout > 0 and elapsed_time > self._msg_timeout:
             return None
         return self._msg_timeout - elapsed_time if self._msg_timeout > 0 else 0
