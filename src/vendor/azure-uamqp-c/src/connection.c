@@ -1240,7 +1240,7 @@ CONNECTION_HANDLE connection_create2(XIO_HANDLE xio, const char* hostname, const
                                 connection->idle_timeout = 0;
                                 connection->remote_idle_timeout = 0;
                                 connection->remote_idle_timeout_send_frame_millisecond = 0;
-                                connection->idle_timeout_empty_frame_send_ratio = 0.5;
+                                connection->idle_timeout_empty_frame_send_ratio = 1.0;
 
                                 connection->endpoint_count = 0;
                                 connection->endpoints = NULL;
