@@ -1334,3 +1334,55 @@ int amqp_management_set_override_status_description_key_name(AMQP_MANAGEMENT_HAN
 
     return result;
 }
+
+ON_LINK_DETACH_EVENT_SUBSCRIPTION_HANDLE amqp_management_subscribe_on_link_detach_received(AMQP_MANAGEMENT_HANDLE amqp_management, ON_LINK_DETACH_RECEIVED on_link_detach_received, void* context)
+{
+    ON_LINK_DETACH_EVENT_SUBSCRIPTION_HANDLE result;
+
+    if((amqp_management->sender_link == NULL) ||
+        (amqp_management->receiver_link == NULL) ||
+        (on_link_detach_received == NULL))
+    {
+        LogError("Invalid arguments: amqp_management = %p, on_link_detach_received = %p, context = %p",
+            amqp_management, on_link_detach_received, context);
+        result = NULL;
+    }
+    else
+    {
+        LINK_HANDLE sender_link_handle = amqp_management->sender_link;
+        result = link_subscribe_on_link_detach_received(amqp_management->sender_link, on_link_detach_received, context);
+    }
+    
+
+
+
+    if ((link == NULL) ||
+        (on_link_detach_received == NULL))
+    {
+        LogError("Invalid arguments: link = %p, on_link_detach_received = %p, context = %p",
+            link, on_link_detach_received, context);
+        result = NULL;
+    }
+    else
+    {
+        if (link->on_link_detach_received_event_subscription.on_link_detach_received != NULL)
+        {
+            LogError("Already subscribed for on_link_detach_received events");
+            result = NULL;
+        }
+        else
+        {
+            link->on_link_detach_received_event_subscription.on_link_detach_received = on_link_detach_received;
+            link->on_link_detach_received_event_subscription.context = context;
+
+            result = &link->on_link_detach_received_event_subscription;
+        }
+    }
+
+    return result;
+}
+
+void amqp_management_unsubscribe_on_link_detach_received(ON_LINK_DETACH_EVENT_SUBSCRIPTION_HANDLE event_subscription)
+{
+
+}

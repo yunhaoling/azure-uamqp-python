@@ -8,6 +8,7 @@
 #include "azure_c_shared_utility/macro_utils.h"
 #include "azure_uamqp_c/session.h"
 #include "azure_uamqp_c/message.h"
+#include "azure_uamqp_c/link.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -43,6 +44,9 @@ DEFINE_ENUM(AMQP_MANAGEMENT_OPEN_RESULT, AMQP_MANAGEMENT_OPEN_RESULT_VALUES)
     MOCKABLE_FUNCTION(, void, amqp_management_set_trace, AMQP_MANAGEMENT_HANDLE, amqp_management, bool, trace_on);
     MOCKABLE_FUNCTION(, int, amqp_management_set_override_status_code_key_name, AMQP_MANAGEMENT_HANDLE, amqp_management, const char*, override_status_code_key_name);
     MOCKABLE_FUNCTION(, int, amqp_management_set_override_status_description_key_name, AMQP_MANAGEMENT_HANDLE, amqp_management, const char*, override_status_description_key_name);
+    
+    MOCKABLE_FUNCTION(, ON_LINK_DETACH_EVENT_SUBSCRIPTION_HANDLE, amqp_management_subscribe_on_link_detach_received, AMQP_MANAGEMENT_HANDLE, amqp_management, ON_LINK_DETACH_RECEIVED, on_link_detach_received, void*, context);
+    MOCKABLE_FUNCTION(, void, amqp_management_unsubscribe_on_link_detach_received, ON_LINK_DETACH_EVENT_SUBSCRIPTION_HANDLE, event_subscription);
 
 #ifdef __cplusplus
 }
