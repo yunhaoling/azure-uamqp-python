@@ -67,9 +67,9 @@ class AMQPAuth(object):
 
     def set_io(self, hostname, port, http_proxy, transport_type):
         if transport_type == TransportType.AmqpOverWebsocket or http_proxy is not None:
-            self.set_wsio(hostname, constants.DEFAULT_AMQP_WSS_PORT, http_proxy)
+            self.set_wsio(hostname, port or constants.DEFAULT_AMQP_WSS_PORT, http_proxy)
         else:
-            self.set_tlsio(hostname, port)
+            self.set_tlsio(hostname, port or constants.DEFAULT_AMQPS_PORT)
 
     def set_wsio(self, hostname, port, http_proxy):
         """Setup the default underlying Web Socket IO layer.
